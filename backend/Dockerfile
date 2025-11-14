@@ -21,6 +21,32 @@ RUN npx prisma generate --schema=prisma/schema.prisma || pnpm prisma generate
 # Build the application
 RUN pnpm build
 
+# Development stage (for hot reload)
+FROM node:20-alpine AS development
+
+# Install pnpm
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install all dependencies (including dev dependencies for hot reload)
+RUN pnpm install --frozen-lockfile
+
+# Copy source code and prisma schema
+COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate --schema=prisma/schema.prisma || pnpm prisma generate || true
+
+# Expose port
+EXPOSE 3001
+
+# Start the application in development mode
+CMD ["pnpm", "start:dev"]
+
 # Production stage
 FROM node:20-alpine AS production
 
