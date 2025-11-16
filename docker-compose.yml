@@ -45,8 +45,7 @@ services:
       dockerfile: Dockerfile
     container_name: company-hub-frontend
     environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-3001}
+      NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-3001}/api
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
@@ -56,7 +55,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/.next
 
 volumes:
   postgres_data:
