@@ -40,4 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/generated/prisma
+# pnpm store (local cache)
+.pnpm-store/
+**/.pnpm-store/
+
+# Prisma Client gerado (custom output)
+backend/generated/

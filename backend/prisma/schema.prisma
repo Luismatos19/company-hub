@@ -13,3 +13,62 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Company {
+  id          String       @id @default(uuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  memberships Membership[]
+  invites     Invite[]
+  activeUsers User[]
+}
+
+model User {
+  id              String        @id @default(uuid())
+  email           String        @unique
+  name            String?
+  password        String
+  activeCompanyId String?       
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  
+  memberships     Membership[]
+  activeCompany   Company?      @relation(fields: [activeCompanyId], references: [id])
+
+  
+  @@unique([id, activeCompanyId])
+}
+
+model Membership {
+  id        String         @id @default(uuid())
+  role      MembershipRole
+  createdAt DateTime       @default(now())
+
+  companyId String
+  userId    String
+
+  company   Company  @relation(fields: [companyId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, companyId])
+}
+
+model Invite {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+}

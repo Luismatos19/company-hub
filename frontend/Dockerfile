@@ -1,15 +1,15 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm with specific version to avoid conflicts
+RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
+# Install dependencies (this will also install TypeScript from devDependencies)
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
@@ -24,23 +24,22 @@ RUN pnpm build
 # Production stage
 FROM node:20-alpine AS production
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm with specific version to avoid conflicts
+RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+# Install production dependencies, but also install TypeScript (needed for next.config.ts)
+RUN pnpm install --prod --frozen-lockfile && pnpm add -D typescript || pnpm install --frozen-lockfile
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/next.config.ts ./next.config.ts
 
 # Create public directory (Next.js expects it, even if empty)
-# The public directory from builder may be empty or not exist, so we create it here
 RUN mkdir -p public
 
 # Expose port

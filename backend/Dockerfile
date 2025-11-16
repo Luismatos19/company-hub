@@ -15,8 +15,8 @@ RUN pnpm install --frozen-lockfile
 # Copy source code and prisma schema
 COPY . .
 
-# Generate Prisma Client (using npx in case prisma is not in scripts)
-RUN npx prisma generate --schema=prisma/schema.prisma || pnpm prisma generate
+# Generate Prisma Client
+RUN npx prisma generate --schema=prisma/schema.prisma || true
 
 # Build the application
 RUN pnpm build
@@ -39,13 +39,13 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Generate Prisma Client
-RUN npx prisma generate --schema=prisma/schema.prisma || pnpm prisma generate || true
+RUN npx prisma generate --schema=prisma/schema.prisma || true
 
 # Expose port
 EXPOSE 3001
 
 # Start the application in development mode
-CMD ["pnpm", "start:dev"]
+CMD ["sh", "-c", "npx prisma generate --schema=prisma/schema.prisma && pnpm start:dev"]
 
 # Production stage
 FROM node:20-alpine AS production

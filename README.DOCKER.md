@@ -9,7 +9,7 @@ Este projeto contém configuração Docker completa para executar a aplicação 
 
 ## Estrutura dos Containers
 
-- **postgres**: Banco de dados PostgreSQL 16
+- **postgres**: Banco de dados PostgreSQL 18
 - **backend**: API NestJS na porta 3001
 - **frontend**: Aplicação Next.js na porta 3000
 

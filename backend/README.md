@@ -1,98 +1,180 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Company Hub Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend da aplicação Company Hub construído com NestJS seguindo as melhores práticas de desenvolvimento.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🏗️ Estrutura do Projeto
 
-## Description
+O projeto segue uma arquitetura modular e organizada:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
+```
+src/
+├── common/              # Recursos compartilhados
+│   ├── prisma/         # Serviço Prisma e módulo
+│   ├── filters/        # Exception filters
+│   ├── interceptors/   # Interceptors (logging, transform)
+│   ├── pipes/          # Validation pipes
+│   └── dto/            # DTOs compartilhados (pagination, etc.)
+├── users/              # Módulo de usuários
+│   ├── dto/           # Data Transfer Objects
+│   ├── users.service.ts
+│   ├── users.controller.ts
+│   ├── users.module.ts
+│   └── users.service.spec.ts
+├── companies/          # Módulo de empresas
+├── memberships/        # Módulo de membros
+├── invites/            # Módulo de convites
+├── auth/               # Módulo de autenticação
+├── app.module.ts       # Módulo raiz
+└── main.ts             # Arquivo de bootstrap
 ```
 
-## Compile and run the project
+## ✨ Funcionalidades Implementadas
+
+### ✅ Boas Práticas Aplicadas
+
+1. **Modularização**: Código organizado em módulos separados com responsabilidades específicas
+2. **Dependency Injection**: Uso completo do sistema de DI do NestJS
+3. **Error Handling**: Exception filters globais para tratamento de erros
+4. **Logging**: Sistema de logging integrado com interceptors
+5. **Validação**: DTOs com class-validator para validação de dados
+6. **Testes**: Testes unitários para serviços principais
+7. **Código Consistente**: ESLint e Prettier configurados
+
+### 📦 Módulos Disponíveis
+
+- **Users**: Gerenciamento de usuários (CRUD)
+- **Companies**: Gerenciamento de empresas (CRUD)
+- **Memberships**: Gerenciamento de membros de empresas
+- **Invites**: Sistema de convites para empresas
+- **Auth**: Autenticação JWT
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- Node.js 18+
+- pnpm (ou npm/yarn)
+- PostgreSQL
+
+### Instalação
 
 ```bash
-# development
-$ pnpm run start
+# Instalar dependências
+pnpm install
 
-# watch mode
-$ pnpm run start:dev
+# Gerar cliente Prisma
+pnpm prisma:generate
 
-# production mode
-$ pnpm run start:prod
+# Executar migrações
+pnpm prisma:migrate
 ```
 
-## Run tests
+### Desenvolvimento
 
 ```bash
-# unit tests
-$ pnpm run test
+# Iniciar em modo desenvolvimento
+pnpm start:dev
 
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+# A aplicação estará disponível em http://localhost:3000/api
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Produção
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# Build
+pnpm build
+
+# Iniciar produção
+pnpm start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🧪 Testes
 
-## Resources
+```bash
+# Executar testes
+pnpm test
 
-Check out a few resources that may come in handy when working with NestJS:
+# Executar testes em modo watch
+pnpm test:watch
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Executar testes com cobertura
+pnpm test:cov
 
-## Support
+# Executar testes e2e
+pnpm test:e2e
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 📝 Variáveis de Ambiente
 
-## Stay in touch
+Configure as variáveis de ambiente no arquivo `.env`:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/company_hub
 
-## License
+# Server
+PORT=3001
+NODE_ENV=development
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# CORS
+FRONTEND_URL=http://localhost:3000
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=1d
+```
+
+## 🔒 Segurança
+
+- Senhas são hashadas com bcrypt (10 rounds)
+- Validação de dados com class-validator
+- Exception filters para tratamento seguro de erros
+- CORS configurado
+- JWT para autenticação
+
+## 📚 API Endpoints
+
+### Auth
+- `POST /api/auth/login` - Login de usuário
+
+### Users
+- `GET /api/users` - Listar todos os usuários
+- `GET /api/users/:id` - Buscar usuário por ID
+- `POST /api/users` - Criar novo usuário
+- `PATCH /api/users/:id` - Atualizar usuário
+- `DELETE /api/users/:id` - Deletar usuário
+
+### Companies
+- `GET /api/companies` - Listar todas as empresas
+- `GET /api/companies/:id` - Buscar empresa por ID
+- `POST /api/companies` - Criar nova empresa
+- `PATCH /api/companies/:id` - Atualizar empresa
+- `DELETE /api/companies/:id` - Deletar empresa
+
+### Memberships
+- `GET /api/memberships` - Listar todas as membresias
+- `GET /api/memberships/:id` - Buscar membresia por ID
+- `POST /api/memberships` - Criar nova membresia
+- `PATCH /api/memberships/:id` - Atualizar membresia
+- `DELETE /api/memberships/:id` - Deletar membresia
+
+### Invites
+- `GET /api/invites` - Listar todos os convites
+- `GET /api/invites/:id` - Buscar convite por ID
+- `GET /api/invites/token/:token` - Buscar convite por token
+- `POST /api/invites` - Criar novo convite
+- `DELETE /api/invites/:id` - Deletar convite
+
+## 🛠️ Tecnologias Utilizadas
+
+- **NestJS** - Framework Node.js
+- **Prisma** - ORM para banco de dados
+- **PostgreSQL** - Banco de dados
+- **JWT** - Autenticação
+- **bcrypt** - Hash de senhas
+- **class-validator** - Validação de dados
+- **Jest** - Framework de testes
+
+## 📖 Documentação
+
+Para mais informações sobre NestJS, consulte a [documentação oficial](https://docs.nestjs.com/).

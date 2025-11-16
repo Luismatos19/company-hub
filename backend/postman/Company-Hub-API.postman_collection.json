@@ -1,0 +1,678 @@
+{
+  "info": {
+    "name": "Company Hub API",
+    "description": "Collection completa de endpoints da API Company Hub",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "company-hub-api"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "membership_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invite_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invite_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "App",
+      "item": [
+        {
+          "name": "Health Check (/healthy)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3001/healthy",
+              "host": ["http://localhost:3001"],
+              "path": ["healthy"]
+            },
+            "description": "Endpoint de verificação de saúde da API"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    // Cookie httpOnly será salvo automaticamente pelo Postman (cookie jar).",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData && jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('user_id', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{$randomEmail}}\",\n  \"password\": \"pass{{$randomInt}}{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Autentica um usuário. O JWT é salvo como cookie httpOnly (access_token)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('user_id', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{$randomEmail}}\",\n  \"password\": \"pass{{$randomInt}}{{$timestamp}}\",\n  \"name\": \"{{$randomFullName}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            },
+            "description": "Cria um novo usuário"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            },
+            "description": "Lista todos os usuários"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "Busca um usuário por ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{$randomFullName}}\",\n  \"email\": \"{{$randomEmail}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "Atualiza informações de um usuário"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"newpass{{$randomInt}}{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "Atualiza a senha de um usuário"
+          },
+          "response": []
+        },
+        {
+          "name": "Set Active Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activeCompanyId\": \"{{company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "Define a empresa ativa para um usuário (usuário deve ser membro da empresa)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{user_id}}"
+                }
+              ]
+            },
+            "description": "Deleta um usuário"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "Create Company",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('company_id', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{$randomCompanyName}} {{$randomInt}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies",
+              "host": ["{{base_url}}"],
+              "path": ["companies"]
+            },
+            "description": "Cria uma nova empresa"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies",
+              "host": ["{{base_url}}"],
+              "path": ["companies"]
+            },
+            "description": "Lista todas as empresas com seus membros e estatísticas"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/:id",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{company_id}}"
+                }
+              ]
+            },
+            "description": "Busca uma empresa por ID com detalhes completos"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated {{$randomCompanyName}} {{$randomInt}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/:id",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{company_id}}"
+                }
+              ]
+            },
+            "description": "Atualiza informações de uma empresa"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/:id",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{company_id}}"
+                }
+              ]
+            },
+            "description": "Deleta uma empresa"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Memberships",
+      "item": [
+        {
+          "name": "Create Membership",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('membership_id', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"companyId\": \"{{company_id}}\",\n  \"role\": \"MEMBER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/memberships",
+              "host": ["{{base_url}}"],
+              "path": ["memberships"]
+            },
+            "description": "Cria uma nova membresia (usuário deve existir e não ser membro da empresa)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Memberships",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/memberships",
+              "host": ["{{base_url}}"],
+              "path": ["memberships"]
+            },
+            "description": "Lista todas as membresias com informações de usuário e empresa"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Membership by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/memberships/:id",
+              "host": ["{{base_url}}"],
+              "path": ["memberships", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{membership_id}}"
+                }
+              ]
+            },
+            "description": "Busca uma membresia por ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Membership Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/memberships/:id",
+              "host": ["{{base_url}}"],
+              "path": ["memberships", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{membership_id}}"
+                }
+              ]
+            },
+            "description": "Atualiza o papel (role) de uma membresia"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Membership",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/memberships/:id",
+              "host": ["{{base_url}}"],
+              "path": ["memberships", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{membership_id}}"
+                }
+              ]
+            },
+            "description": "Remove uma membresia (usuário deixa de ser membro da empresa)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Invites",
+      "item": [
+        {
+          "name": "Create Invite",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Gerar data futura (30 dias a partir de agora)",
+                  "const futureDate = new Date();",
+                  "futureDate.setDate(futureDate.getDate() + 30);",
+                  "pm.collectionVariables.set('invite_expires_at', futureDate.toISOString());"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('invite_id', jsonData.data.id);",
+                  "        pm.collectionVariables.set('invite_token', jsonData.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{$randomEmail}}\",\n  \"companyId\": \"{{company_id}}\",\n  \"expiresAt\": \"{{invite_expires_at}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/invites",
+              "host": ["{{base_url}}"],
+              "path": ["invites"]
+            },
+            "description": "Cria um novo convite para uma empresa (expiresAt deve ser uma data futura no formato ISO)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Invites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invites",
+              "host": ["{{base_url}}"],
+              "path": ["invites"]
+            },
+            "description": "Lista todos os convites ordenados por data de criação"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Invite by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invites/:id",
+              "host": ["{{base_url}}"],
+              "path": ["invites", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{invite_id}}"
+                }
+              ]
+            },
+            "description": "Busca um convite por ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Invite by Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invites/token/:token",
+              "host": ["{{base_url}}"],
+              "path": ["invites", "token", ":token"],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "{{invite_token}}",
+                  "description": "Token do convite gerado automaticamente"
+                }
+              ]
+            },
+            "description": "Busca um convite pelo token (valida se não expirou)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Invite",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invites/:id",
+              "host": ["{{base_url}}"],
+              "path": ["invites", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{invite_id}}"
+                }
+              ]
+            },
+            "description": "Deleta um convite"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
