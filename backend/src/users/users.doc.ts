@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { applyDecorators } from '@nestjs/common';
+import { ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 export class SwaggerUserResponse {
   @ApiProperty({ format: 'uuid', description: 'Identificador do usuário' })
@@ -86,3 +88,68 @@ export class SwaggerUpdateUserBody {
   })
   activeCompanyId?: string;
 }
+
+export const DocUsers = {
+  Create: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Criar usuário',
+        description: 'Cria um novo usuário na plataforma.',
+      }),
+      ApiBody({ type: SwaggerCreateUserBody }),
+      ApiResponse({
+        status: 201,
+        type: SwaggerUserResponse,
+        description: 'Usuário criado com sucesso.',
+      }),
+    ),
+  List: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Listar usuários',
+        description: 'Retorna a lista de usuários.',
+      }),
+      ApiResponse({
+        status: 200,
+        type: SwaggerUserResponse,
+        isArray: true,
+        description: 'Lista de usuários retornada com sucesso.',
+      }),
+    ),
+  GetOne: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Buscar usuário por ID',
+        description: 'Retorna os dados de um usuário específico.',
+      }),
+      ApiResponse({
+        status: 200,
+        type: SwaggerUserResponse,
+        description: 'Usuário encontrado.',
+      }),
+    ),
+  Update: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Atualizar usuário',
+        description: 'Atualiza os dados de um usuário.',
+      }),
+      ApiBody({ type: SwaggerUpdateUserBody }),
+      ApiResponse({
+        status: 200,
+        type: SwaggerUserResponse,
+        description: 'Usuário atualizado com sucesso.',
+      }),
+    ),
+  Remove: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Remover usuário',
+        description: 'Remove um usuário por ID.',
+      }),
+      ApiResponse({
+        status: 204,
+        description: 'Usuário removido com sucesso.',
+      }),
+    ),
+};

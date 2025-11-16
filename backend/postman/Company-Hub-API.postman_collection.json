@@ -653,6 +653,26 @@
           "response": []
         },
         {
+          "name": "Accept Invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invite_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/invites/accept",
+              "host": ["{{base_url}}"],
+              "path": ["invites", "accept"]
+            },
+            "description": "Aceita convite via token (JWT em cookie httpOnly deve estar presente)"
+          },
+          "response": []
+        }
+        {
           "name": "Delete Invite",
           "request": {
             "method": "DELETE",

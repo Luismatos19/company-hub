@@ -49,7 +49,15 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Usuário não encontrado');
     }
 
-    if (!user.activeCompanyId) {
+    const path: string = request?.originalUrl || request?.url || '';
+    const method: string = (request?.method || '').toUpperCase();
+    const isInviteAccept = path.includes('/invites/accept');
+    const isCompanyCreate =
+      method === 'POST' &&
+      (path.includes('/companies') || path.includes('/company'));
+    const bypassActiveCompanyChecks = isInviteAccept || isCompanyCreate;
+
+    if (!user.activeCompanyId && !bypassActiveCompanyChecks) {
       throw new ForbiddenException('Nenhuma empresa ativa selecionada');
     }
 
@@ -57,7 +65,7 @@ export class JwtAuthGuard implements CanActivate {
       (m) => m.companyId === user.activeCompanyId,
     );
 
-    if (!membership) {
+    if (!membership && !bypassActiveCompanyChecks) {
       throw new ForbiddenException(
         'Usuário não é membro da empresa ativa selecionada',
       );
@@ -66,8 +74,8 @@ export class JwtAuthGuard implements CanActivate {
     const authUser: AuthUserContext = {
       id: user.id,
       email: user.email,
-      activeCompanyId: user.activeCompanyId,
-      role: membership.role as MembershipRole,
+      activeCompanyId: user.activeCompanyId ?? '',
+      role: membership?.role as MembershipRole,
     };
 
     request.user = authUser;

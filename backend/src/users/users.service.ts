@@ -110,12 +110,10 @@ export class UsersService {
 
     const updateData: any = { ...updateUserDto };
 
-    // Hash password if provided
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    // Validate activeCompanyId if provided
     if (updateData.activeCompanyId) {
       const company = await this.prisma.company.findUnique({
         where: { id: updateData.activeCompanyId },
@@ -127,7 +125,6 @@ export class UsersService {
         );
       }
 
-      // Check if user has membership in this company
       const membership = await this.prisma.membership.findUnique({
         where: {
           userId_companyId: {
@@ -172,4 +169,3 @@ export class UsersService {
     return { message: 'User deleted successfully' };
   }
 }
-

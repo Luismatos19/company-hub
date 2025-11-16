@@ -15,10 +15,6 @@ export class CompaniesService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Cria uma empresa e define o usuário criador como OWNER dessa empresa.
-   * Também define a empresa como ativa para o usuário caso ele ainda não tenha uma.
-   */
   async create(createCompanyDto: CreateCompanyDto, userId: string) {
     const company = await this.prisma.company.create({
       data: createCompanyDto,
@@ -32,7 +28,6 @@ export class CompaniesService {
       },
     });
 
-    // Se o usuário ainda não tem empresa ativa, define esta
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (user && !user.activeCompanyId) {
       await this.prisma.user.update({
@@ -45,16 +40,23 @@ export class CompaniesService {
     return company;
   }
 
-  /**
-   * Retorna apenas empresas nas quais o usuário é membro.
-   */
-  async findAllForUser(userId: string) {
+  async findAllForUser(
+    userId: string,
+    pagination?: { page: number; pageSize: number },
+  ) {
+    const skip = pagination
+      ? (pagination.page - 1) * pagination.pageSize
+      : undefined;
+    const take = pagination ? pagination.pageSize : undefined;
+
     return this.prisma.company.findMany({
       where: {
         memberships: {
           some: { userId },
         },
       },
+      skip,
+      take,
       include: {
         memberships: {
           include: {

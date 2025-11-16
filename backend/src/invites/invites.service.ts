@@ -133,4 +133,49 @@ export class InvitesService {
     this.logger.log(`Convite deletado: ${id}`);
     return { message: 'Convite deletado com sucesso' };
   }
+
+  async acceptInvite(userId: string, token: string) {
+    const invite = await this.prisma.invite.findUnique({
+      where: { token },
+    });
+    if (!invite) {
+      throw new (await import('@nestjs/common')).UnauthorizedException(
+        'Convite inválido',
+      );
+    }
+
+    if (new Date() > invite.expiresAt) {
+      throw new (await import('@nestjs/common')).UnauthorizedException(
+        'Convite expirado',
+      );
+    }
+
+    const existing = await this.prisma.membership.findUnique({
+      where: {
+        userId_companyId: {
+          userId,
+          companyId: invite.companyId,
+        },
+      },
+    });
+    if (!existing) {
+      await this.prisma.membership.create({
+        data: {
+          userId,
+          companyId: invite.companyId,
+          role: 'MEMBER',
+        },
+      });
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (user && !user.activeCompanyId) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { activeCompanyId: invite.companyId },
+      });
+    }
+
+    return { message: 'Convite aceito com sucesso' };
+  }
 }

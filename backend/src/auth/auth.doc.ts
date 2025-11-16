@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { applyDecorators } from '@nestjs/common';
+import { ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 export class SwaggerLoginBody {
   @ApiProperty({
@@ -24,3 +26,28 @@ export class SwaggerLoginResponseUser {
   @ApiProperty({ format: 'uuid', nullable: true })
   activeCompanyId?: string | null;
 }
+
+export const DocAuth = {
+  Login: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Login',
+        description:
+          'Autentica o usuário e define o JWT em um cookie httpOnly (access_token).',
+      }),
+      ApiBody({ schema: { properties: { email: { type: 'string' }, password: { type: 'string' } }, required: ['email', 'password'] } }),
+      ApiResponse({
+        status: 200,
+        type: SwaggerLoginResponseUser,
+        description: 'Usuário autenticado; cookie httpOnly definido.',
+      }),
+    ),
+  Signup: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Cadastro',
+        description: 'Cria um novo usuário e autentica (cookie httpOnly).',
+      }),
+      ApiResponse({ status: 201, type: SwaggerLoginResponseUser }),
+    ),
+};
