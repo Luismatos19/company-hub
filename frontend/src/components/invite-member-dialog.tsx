@@ -11,90 +11,83 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { companiesApi } from "@/lib/api";
-import { useAuthStore } from "@/store/auth-store";
-import { useRouter } from "next/navigation";
-import { createCompanySchema, type CreateCompanyFormData } from "@/lib/schemas";
+import { invitesApi } from "@/lib/api";
+import { inviteMemberSchema, type InviteMemberFormData } from "@/lib/schemas";
 import { ApiError } from "@/lib/api";
 
-interface CreateCompanyDialogProps {
+interface InviteMemberDialogProps {
   open: boolean;
   onClose: () => void;
+  companyId: string;
+  onSuccess: () => void;
 }
 
-export function CreateCompanyDialog({
+export function InviteMemberDialog({
   open,
   onClose,
-}: CreateCompanyDialogProps) {
-  const router = useRouter();
-  const { setActiveCompany, setCompanies, companies } = useAuthStore();
-
+  companyId,
+  onSuccess,
+}: InviteMemberDialogProps) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setError: setFormError,
     reset,
-  } = useForm<CreateCompanyFormData>({
-    resolver: zodResolver(createCompanySchema),
+  } = useForm<InviteMemberFormData>({
+    resolver: zodResolver(inviteMemberSchema),
     defaultValues: {
-      name: "",
-      logo: "",
+      email: "",
+      expiresAt: "",
     },
   });
 
-  const onSubmit = async (data: CreateCompanyFormData) => {
+  if (!open) return null;
+
+  const onSubmit = async (data: InviteMemberFormData) => {
     try {
-      const newCompany = await companiesApi.create(
-        data.name,
-        data.logo || undefined
-      );
-
-      setCompanies([...companies, newCompany]);
-
-      await companiesApi.select(newCompany.id);
-      setActiveCompany(newCompany);
-
+      await invitesApi.create(companyId, data.email, data.expiresAt);
       reset();
+      onSuccess();
       onClose();
-      router.push("/dashboard");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setFormError("root", { message: err.message });
       } else {
-        setFormError("root", { message: "Erro ao criar empresa" });
+        setFormError("root", { message: "Erro ao enviar convite" });
       }
     }
   };
 
-  if (!open) return null;
+  const minDate = new Date().toISOString().slice(0, 16);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Criar Nova Empresa</CardTitle>
+          <CardTitle>Convidar Membro</CardTitle>
           <CardDescription>
-            Preencha os dados para criar uma nova empresa
+            Envie um convite para adicionar um novo membro à empresa
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <FormField
-              label="Nome da Empresa"
-              type="text"
-              placeholder="Nome da empresa"
+              label="Email"
+              type="email"
+              placeholder="email@example.com"
               required
-              {...register("name")}
-              error={errors.name?.message}
+              {...register("email")}
+              error={errors.email?.message}
             />
 
             <FormField
-              label="URL do Logo (opcional)"
-              type="url"
-              placeholder="https://example.com/logo.png"
-              {...register("logo")}
-              error={errors.logo?.message}
+              label="Data de Expiração"
+              type="datetime-local"
+              required
+              min={minDate}
+              {...register("expiresAt")}
+              error={errors.expiresAt?.message}
             />
 
             {errors.root && (
@@ -113,7 +106,7 @@ export function CreateCompanyDialog({
                 Cancelar
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                {isSubmitting ? "Criando..." : "Criar"}
+                {isSubmitting ? "Enviando..." : "Enviar Convite"}
               </Button>
             </div>
           </form>

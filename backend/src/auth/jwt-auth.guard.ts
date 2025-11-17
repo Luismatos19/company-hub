@@ -2,9 +2,11 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+} from '@nestjs/common';
+import {
   UnauthorizedException,
   ForbiddenException,
-} from '@nestjs/common';
+} from '../common/exceptions';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { MembershipRole } from '../common/enums/membership-role.enum';

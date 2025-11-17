@@ -19,10 +19,10 @@ export function useAuth() {
       setUser(loggedUser);
 
       if (loggedUser.activeCompanyId) {
-        const companiesResponse = await companiesApi.getAll();
-        setCompanies(companiesResponse.data);
+        const companies = await companiesApi.getAll();
+        setCompanies(companies);
 
-        const activeCompany = companiesResponse.data.find(
+        const activeCompany = companies.find(
           (c) => c.id === loggedUser.activeCompanyId
         );
         if (activeCompany) {
@@ -53,19 +53,24 @@ export function useAuth() {
       await authApi.logout();
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
-    } finally {
-      logoutStore();
+    }
+
+    logoutStore();
+
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
+    } else {
       router.push("/");
     }
   };
 
   const loadUserCompanies = async () => {
     try {
-      const companiesResponse = await companiesApi.getAll();
-      setCompanies(companiesResponse.data);
+      const companies = await companiesApi.getAll();
+      setCompanies(companies);
 
       if (user?.activeCompanyId) {
-        const activeCompany = companiesResponse.data.find(
+        const activeCompany = companies.find(
           (c) => c.id === user.activeCompanyId
         );
         if (activeCompany) {

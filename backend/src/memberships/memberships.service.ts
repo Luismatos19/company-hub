@@ -1,10 +1,9 @@
+import { Injectable, Logger } from '@nestjs/common';
 import {
-  Injectable,
   NotFoundException,
   ConflictException,
-  Logger,
   ForbiddenException,
-} from '@nestjs/common';
+} from '../common/exceptions';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
@@ -40,7 +39,7 @@ export class MembershipsService {
     });
 
     if (!user) {
-      throw new NotFoundException(`Usuário com ID ${userId} não encontrado`);
+      throw new NotFoundException('Usuário', userId);
     }
 
     const company = await this.prisma.company.findUnique({
@@ -48,7 +47,7 @@ export class MembershipsService {
     });
 
     if (!company) {
-      throw new NotFoundException(`Empresa com ID ${companyId} não encontrada`);
+      throw new NotFoundException('Empresa', companyId);
     }
 
     const existingMembership = await this.prisma.membership.findUnique({
@@ -133,9 +132,7 @@ export class MembershipsService {
     });
 
     if (!membership) {
-      throw new NotFoundException(
-        `Membro com ID ${id} não encontrado na empresa ativa`,
-      );
+      throw new NotFoundException('Membro', id);
     }
 
     return membership;

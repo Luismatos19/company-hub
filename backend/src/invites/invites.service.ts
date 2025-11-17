@@ -1,10 +1,10 @@
+import { Injectable, Logger } from '@nestjs/common';
 import {
-  Injectable,
   NotFoundException,
   BadRequestException,
-  Logger,
   ForbiddenException,
-} from '@nestjs/common';
+  UnauthorizedException,
+} from '../common/exceptions';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { randomBytes } from 'crypto';
@@ -29,7 +29,7 @@ export class InvitesService {
     });
 
     if (!company) {
-      throw new NotFoundException(`Empresa com ID ${companyId} não encontrada`);
+      throw new NotFoundException('Empresa', companyId);
     }
 
     const expiresAtDate = new Date(expiresAt);
@@ -91,9 +91,7 @@ export class InvitesService {
     });
 
     if (!invite) {
-      throw new NotFoundException(
-        `Convite com ID ${id} não encontrado na empresa ativa`,
-      );
+      throw new NotFoundException('Convite', id);
     }
 
     return invite;
@@ -113,7 +111,7 @@ export class InvitesService {
     });
 
     if (!invite) {
-      throw new NotFoundException('Token de convite inválido');
+      throw new NotFoundException('Convite');
     }
 
     if (new Date() > invite.expiresAt) {
@@ -139,15 +137,11 @@ export class InvitesService {
       where: { token },
     });
     if (!invite) {
-      throw new (await import('@nestjs/common')).UnauthorizedException(
-        'Convite inválido',
-      );
+      throw new UnauthorizedException('Convite inválido');
     }
 
     if (new Date() > invite.expiresAt) {
-      throw new (await import('@nestjs/common')).UnauthorizedException(
-        'Convite expirado',
-      );
+      throw new UnauthorizedException('Convite expirado');
     }
 
     const existing = await this.prisma.membership.findUnique({

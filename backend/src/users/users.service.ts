@@ -1,9 +1,8 @@
+import { Injectable, Logger } from '@nestjs/common';
 import {
-  Injectable,
   NotFoundException,
   ConflictException,
-  Logger,
-} from '@nestjs/common';
+} from '../common/exceptions';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -93,7 +92,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException('Usuário', id);
     }
 
     return user;
@@ -120,9 +119,7 @@ export class UsersService {
       });
 
       if (!company) {
-        throw new NotFoundException(
-          `Company with ID ${updateData.activeCompanyId} not found`,
-        );
+        throw new NotFoundException('Empresa', updateData.activeCompanyId);
       }
 
       const membership = await this.prisma.membership.findUnique({

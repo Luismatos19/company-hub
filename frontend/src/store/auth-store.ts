@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { User, Company } from '@/lib/api';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import type { User, Company } from "@/types";
 
 interface AuthState {
   user: User | null;
@@ -23,18 +23,23 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user }),
       setActiveCompany: (activeCompany) => set({ activeCompany }),
       setCompanies: (companies) => set({ companies }),
-      logout: () =>
+      logout: () => {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("auth-storage");
+        }
         set({
           user: null,
           activeCompany: null,
           companies: [],
-        }),
+        });
+      },
     }),
     {
-      name: 'auth-storage',
-      storage: typeof window !== 'undefined' 
-        ? createJSONStorage(() => localStorage)
-        : undefined,
+      name: "auth-storage",
+      storage:
+        typeof window !== "undefined"
+          ? createJSONStorage(() => localStorage)
+          : undefined,
     }
   )
 );

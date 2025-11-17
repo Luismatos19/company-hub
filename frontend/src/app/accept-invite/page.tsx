@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { FormField } from '@/components/ui/form-field';
 import {
   Card,
   CardContent,
@@ -13,6 +15,8 @@ import {
 } from '@/components/ui/card';
 import { invitesApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
+import { acceptInviteSchema, type AcceptInviteFormData } from '@/lib/schemas';
+import { ApiError } from '@/lib/api';
 import { Zap, CheckCircle2 } from 'lucide-react';
 
 function AcceptInviteContent() {
@@ -21,18 +25,31 @@ function AcceptInviteContent() {
   const token = searchParams.get('token');
   const { setActiveCompany } = useAuthStore();
 
-  const [inputToken, setInputToken] = useState(token || '');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleAccept = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError: setFormError,
+    setValue,
+  } = useForm<AcceptInviteFormData>({
+    resolver: zodResolver(acceptInviteSchema),
+    defaultValues: {
+      token: token || '',
+    },
+  });
 
+  // Sincroniza o token da URL com o formulário
+  useEffect(() => {
+    if (token) {
+      setValue('token', token);
+    }
+  }, [token, setValue]);
+
+  const onSubmit = async (data: AcceptInviteFormData) => {
     try {
-      const result = await invitesApi.accept(inputToken);
+      const result = await invitesApi.accept(data.token);
       setActiveCompany(result.company);
       setSuccess(true);
 
@@ -40,15 +57,11 @@ function AcceptInviteContent() {
         router.push('/dashboard');
       }, 2000);
     } catch (err: unknown) {
-      const errorWithMessage = err as {
-        response?: { data?: { message?: string } };
-      };
-      setError(
-        errorWithMessage.response?.data?.message ||
-          'Erro ao aceitar convite',
-      );
-    } finally {
-      setIsLoading(false);
+      if (err instanceof ApiError) {
+        setFormError('root', { message: err.message });
+      } else {
+        setFormError('root', { message: 'Erro ao aceitar convite' });
+      }
     }
   };
 
@@ -91,29 +104,24 @@ function AcceptInviteContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAccept} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="token" className="text-sm font-medium">
-                Token do Convite
-              </label>
-              <Input
-                id="token"
-                type="text"
-                placeholder="Cole o token aqui"
-                value={inputToken}
-                onChange={(e) => setInputToken(e.target.value)}
-                required
-              />
-            </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              label="Token do Convite"
+              type="text"
+              placeholder="Cole o token aqui"
+              required
+              {...register('token')}
+              error={errors.token?.message}
+            />
 
-            {error && (
+            {errors.root && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-                {error}
+                {errors.root.message}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Processando...' : 'Aceitar Convite'}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Processando...' : 'Aceitar Convite'}
             </Button>
 
             <div className="text-center text-sm">

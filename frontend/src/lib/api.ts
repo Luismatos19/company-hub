@@ -1,164 +1,121 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import axios, { AxiosError } from "axios";
+import type {
+  ApiResponse,
+  User,
+  Company,
+  Membership,
+  Invite,
+  MembershipRole,
+} from "@/types";
+import { API_URL } from "@/lib/constants";
 
 export const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Importante para cookies httpOnly
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Interceptor para tratar erros
+export class ApiError extends Error {
+  status: number | null;
+  data: any | null;
+
+  constructor(message: string, status: number | null, data?: any) {
+    super(message);
+    this.status = status;
+    this.data = data || null;
+  }
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Redirecionar para login se não autenticado
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
+
+  (error: AxiosError) => {
+    const status = error.response?.status || null;
+    const responseData = error.response?.data as any;
+
+    const message =
+      responseData?.message ||
+      (typeof responseData === "string" ? responseData : null) ||
+      error.message ||
+      "Erro desconhecido";
+
+    const data = error.response?.data || null;
+
+    if (
+      status === 401 &&
+      typeof window !== "undefined" &&
+      !window.location.pathname.includes("/login") &&
+      !window.location.pathname.includes("/accept-invite")
+    ) {
+      window.location.href = "/login";
     }
-    return Promise.reject(error);
+
+    throw new ApiError(message, status, data);
   }
 );
 
-// Tipos baseados no TransformInterceptor do backend
-export interface ApiResponse<T> {
-  data: T;
-  statusCode: number;
-  message?: string;
-  meta?: unknown;
+async function handleRequest<T>(promise: Promise<{ data: T }>): Promise<T> {
+  try {
+    const { data } = await promise;
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError("Erro desconhecido", null, error);
+  }
 }
 
-export interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  activeCompanyId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Company {
-  id: string;
-  name: string;
-  logo: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Membership {
-  id: string;
-  userId: string;
-  companyId: string;
-  role: 'OWNER' | 'ADMIN' | 'MEMBER';
-  user?: User;
-  company?: Company;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Invite {
-  id: string;
-  email: string;
-  companyId: string;
-  token: string;
-  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
-  company?: Company;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// API de Autenticação
 export const authApi = {
-  login: async (email: string, password: string): Promise<User> => {
-    const { data } = await api.post<ApiResponse<User>>('/auth/login', {
-      email,
-      password,
-    });
-    return data.data;
-  },
+  login: (email: string, password: string) =>
+    handleRequest<User>(api.post("/auth/login", { email, password })),
 
-  signup: async (
-    email: string,
-    password: string,
-    name?: string
-  ): Promise<User> => {
-    const { data } = await api.post<ApiResponse<User>>('/auth/signup', {
-      email,
-      password,
-      name,
-    });
-    return data.data;
-  },
+  signup: (email: string, password: string, name?: string) =>
+    handleRequest<User>(api.post("/auth/signup", { email, password, name })),
 
-  logout: async () => {
-    await api.post('/auth/logout');
-  },
+  logout: () => handleRequest(api.post("/auth/logout")),
 };
 
-// API de Empresas
 export const companiesApi = {
-  getAll: async (page = 1, pageSize = 10) => {
-    const { data } = await api.get<
-      ApiResponse<{
-        data: Company[];
-        meta: { total: number; page: number; pageSize: number };
-      }>
-    >('/companies', {
-      params: { page, pageSize },
-    });
-    return data.data;
-  },
+  getAll: (page = 1, pageSize = 10) =>
+    handleRequest<Company[]>(
+      api.get("/companies", { params: { page, pageSize } })
+    ),
 
-  getById: async (id: string) => {
-    const { data } = await api.get<ApiResponse<Company>>(`/companies/${id}`);
-    return data.data;
-  },
+  getById: (id: string) => handleRequest<Company>(api.get(`/companies/${id}`)),
 
-  create: async (name: string, logo?: string) => {
-    const { data } = await api.post<ApiResponse<Company>>('/companies', {
-      name,
-      logo,
-    });
-    return data.data;
-  },
+  create: (name: string, logo?: string) =>
+    handleRequest<Company>(api.post("/companies", { name, logo })),
 
-  select: async (id: string) => {
-    const { data } = await api.post<ApiResponse<User>>(
-      `/companies/${id}/select`
-    );
-    return data.data;
-  },
+  select: (id: string) =>
+    handleRequest<User>(api.post(`/companies/${id}/select`)),
+
+  update: (id: string, name: string) =>
+    handleRequest<Company>(api.patch(`/companies/${id}`, { name })),
+
+  delete: (id: string) => handleRequest(api.delete(`/companies/${id}`)),
 };
 
-// API de Membros
 export const membershipsApi = {
-  getAll: async () => {
-    const { data } = await api.get<ApiResponse<Membership[]>>(`/memberships`);
-    return data.data;
-  },
+  getAll: () => handleRequest<Membership[]>(api.get("/memberships")),
+
+  update: (id: string, role: MembershipRole) =>
+    handleRequest<Membership>(api.patch(`/memberships/${id}`, { role })),
+
+  delete: (id: string) => handleRequest(api.delete(`/memberships/${id}`)),
 };
 
-// API de Convites
 export const invitesApi = {
-  create: async (companyId: string, email: string) => {
-    const { data } = await api.post<ApiResponse<Invite>>(`/invites`, {
-      companyId,
-      email,
-    });
-    return data.data;
-  },
+  create: (companyId: string, email: string, expiresAt: string) =>
+    handleRequest<Invite>(
+      api.post("/invites", { companyId, email, expiresAt })
+    ),
 
-  accept: async (token: string) => {
-    const { data } = await api.post<
-      ApiResponse<{
-        membership: Membership;
-        company: Company;
-      }>
-    >('/invites/accept', { token });
-    return data.data;
-  },
+  accept: (token: string) =>
+    handleRequest<{
+      membership: Membership;
+      company: Company;
+    }>(api.post("/invites/accept", { token })),
 };
+
+export type { User, Company, Membership, Invite, ApiResponse, MembershipRole };

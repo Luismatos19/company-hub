@@ -1,9 +1,8 @@
+import { Injectable, Logger } from '@nestjs/common';
 import {
-  Injectable,
   NotFoundException,
-  Logger,
   ForbiddenException,
-} from '@nestjs/common';
+} from '../common/exceptions';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -112,9 +111,7 @@ export class CompaniesService {
     });
 
     if (!company) {
-      throw new NotFoundException(
-        `Empresa com ID ${id} não encontrada ou usuário não é membro`,
-      );
+      throw new NotFoundException('Empresa', id);
     }
 
     return company;

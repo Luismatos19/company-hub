@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { UnauthorizedException } from '../common/exceptions';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { useAuthForm } from "@/hooks/use-auth-form";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/ui/form-field";
 import {
   Card,
   CardContent,
@@ -11,49 +12,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/hooks/use-auth";
+
 import { Zap } from "lucide-react";
 
 function LoginContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const isSignup = searchParams.get("signup") === "true";
-  const { isAuthenticated, login, signup } = useAuth();
+  const { isSignup, form, formState, onSubmit, switchMode } = useAuthForm();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/dashboard");
-    }
-  }, [isAuthenticated, router]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    try {
-      if (isSignup) {
-        await signup(email, password, name || undefined);
-      } else {
-        await login(email, password);
-      }
-    } catch (err: unknown) {
-      const errorWithMessage = err as {
-        response?: { data?: { message?: string } };
-      };
-      setError(
-        errorWithMessage.response?.data?.message ||
-          (isSignup ? "Erro ao criar conta" : "Erro ao fazer login")
-      );
-    } finally {
-      setIsLoading(false);
-    }
+  const { register, handleSubmit, errors, isSubmitting } = {
+    ...form,
+    ...formState,
   };
 
   return (
@@ -65,99 +32,71 @@ function LoginContent() {
               <Zap className="size-6 text-white" />
             </div>
           </div>
+
           <CardTitle className="text-2xl text-center">
             {isSignup ? "Criar Conta" : "Entrar"}
           </CardTitle>
+
           <CardDescription className="text-center">
             {isSignup
               ? "Preencha os dados para criar sua conta"
               : "Digite suas credenciais para acessar"}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {isSignup && (
-              <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
-                  Nome (opcional)
-                </label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Seu nome"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
+              <FormField
+                label="Nome"
+                type="text"
+                placeholder="Seu nome"
+                {...register("name" as any)}
+                error={(errors as any).name?.message}
+              />
             )}
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                E-mail
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+            <FormField
+              label="E-mail"
+              type="email"
+              placeholder="seu@email.com"
+              {...register("email")}
+              error={errors.email?.message}
+            />
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Senha
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
+            <FormField
+              label="Senha"
+              type="password"
+              placeholder="••••••••"
+              {...register("password")}
+              error={errors.password?.message}
+            />
 
-            {error && (
+            {errors.root?.message && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-                {error}
+                {errors.root.message}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting
                 ? "Carregando..."
                 : isSignup
-                ? "Criar Conta"
+                ? "Criar conta"
                 : "Entrar"}
             </Button>
 
             <div className="text-center text-sm">
-              {isSignup ? (
-                <p>
-                  Já tem uma conta?{" "}
-                  <button
-                    type="button"
-                    onClick={() => router.push("/login")}
-                    className="text-primary hover:underline"
-                  >
-                    Fazer login
-                  </button>
-                </p>
-              ) : (
-                <p>
-                  Não tem uma conta?{" "}
-                  <button
-                    type="button"
-                    onClick={() => router.push("/login?signup=true")}
-                    className="text-primary hover:underline"
-                  >
-                    Criar conta
-                  </button>
-                </p>
-              )}
+              <p>
+                {isSignup ? "Já tem uma conta?" : "Ainda não tem conta?"}{" "}
+                <button
+                  type="button"
+                  onClick={switchMode}
+                  className="text-primary hover:underline"
+                >
+                  {isSignup ? "Fazer login" : "Criar conta"}
+                </button>
+              </p>
             </div>
           </form>
         </CardContent>
@@ -168,15 +107,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center">
-            <div className="text-lg text-muted-foreground">Carregando...</div>
-          </div>
-        </main>
-      }
-    >
+    <Suspense fallback={<p>Carregando...</p>}>
       <LoginContent />
     </Suspense>
   );

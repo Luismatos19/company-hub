@@ -60,4 +60,18 @@ export class AuthController {
 
     return result.user;
   }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @DocAuth.Logout()
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+    });
+
+    return { message: 'Logout realizado com sucesso' };
+  }
 }

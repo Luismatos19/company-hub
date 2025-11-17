@@ -35,7 +35,15 @@ export const DocAuth = {
         description:
           'Autentica o usuário e define o JWT em um cookie httpOnly (access_token).',
       }),
-      ApiBody({ schema: { properties: { email: { type: 'string' }, password: { type: 'string' } }, required: ['email', 'password'] } }),
+      ApiBody({
+        schema: {
+          properties: {
+            email: { type: 'string' },
+            password: { type: 'string' },
+          },
+          required: ['email', 'password'],
+        },
+      }),
       ApiResponse({
         status: 200,
         type: SwaggerLoginResponseUser,
@@ -49,5 +57,16 @@ export const DocAuth = {
         description: 'Cria um novo usuário e autentica (cookie httpOnly).',
       }),
       ApiResponse({ status: 201, type: SwaggerLoginResponseUser }),
+    ),
+  Logout: () =>
+    applyDecorators(
+      ApiOperation({
+        summary: 'Logout',
+        description: 'Remove o cookie de autenticação (access_token).',
+      }),
+      ApiResponse({
+        status: 200,
+        description: 'Logout realizado com sucesso',
+      }),
     ),
 };

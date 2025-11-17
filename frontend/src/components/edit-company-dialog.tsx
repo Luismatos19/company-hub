@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -12,71 +13,64 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { companiesApi } from "@/lib/api";
-import { useAuthStore } from "@/store/auth-store";
-import { useRouter } from "next/navigation";
-import { createCompanySchema, type CreateCompanyFormData } from "@/lib/schemas";
+import { updateCompanySchema, type UpdateCompanyFormData } from "@/lib/schemas";
 import { ApiError } from "@/lib/api";
+import type { Company } from "@/types";
 
-interface CreateCompanyDialogProps {
+interface EditCompanyDialogProps {
   open: boolean;
   onClose: () => void;
+  company: Company | null;
+  onSuccess: () => void;
 }
 
-export function CreateCompanyDialog({
+export function EditCompanyDialog({
   open,
   onClose,
-}: CreateCompanyDialogProps) {
-  const router = useRouter();
-  const { setActiveCompany, setCompanies, companies } = useAuthStore();
-
+  company,
+  onSuccess,
+}: EditCompanyDialogProps) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setError: setFormError,
     reset,
-  } = useForm<CreateCompanyFormData>({
-    resolver: zodResolver(createCompanySchema),
+  } = useForm<UpdateCompanyFormData>({
+    resolver: zodResolver(updateCompanySchema),
     defaultValues: {
-      name: "",
-      logo: "",
+      name: company?.name || "",
     },
   });
 
-  const onSubmit = async (data: CreateCompanyFormData) => {
+  useEffect(() => {
+    if (company) {
+      reset({ name: company.name });
+    }
+  }, [company, reset]);
+
+  if (!open || !company) return null;
+
+  const onSubmit = async (data: UpdateCompanyFormData) => {
     try {
-      const newCompany = await companiesApi.create(
-        data.name,
-        data.logo || undefined
-      );
-
-      setCompanies([...companies, newCompany]);
-
-      await companiesApi.select(newCompany.id);
-      setActiveCompany(newCompany);
-
-      reset();
+      await companiesApi.update(company.id, data.name);
+      onSuccess();
       onClose();
-      router.push("/dashboard");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setFormError("root", { message: err.message });
       } else {
-        setFormError("root", { message: "Erro ao criar empresa" });
+        setFormError("root", { message: "Erro ao editar empresa" });
       }
     }
   };
-
-  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Criar Nova Empresa</CardTitle>
-          <CardDescription>
-            Preencha os dados para criar uma nova empresa
-          </CardDescription>
+          <CardTitle>Editar Empresa</CardTitle>
+          <CardDescription>Altere o nome da empresa</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -87,14 +81,6 @@ export function CreateCompanyDialog({
               required
               {...register("name")}
               error={errors.name?.message}
-            />
-
-            <FormField
-              label="URL do Logo (opcional)"
-              type="url"
-              placeholder="https://example.com/logo.png"
-              {...register("logo")}
-              error={errors.logo?.message}
             />
 
             {errors.root && (
@@ -113,7 +99,7 @@ export function CreateCompanyDialog({
                 Cancelar
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                {isSubmitting ? "Criando..." : "Criar"}
+                {isSubmitting ? "Salvando..." : "Salvar"}
               </Button>
             </div>
           </form>

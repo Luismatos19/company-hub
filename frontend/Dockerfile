@@ -5,13 +5,12 @@ RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first
 COPY package.json pnpm-lock.yaml ./
 
 # Install all dependencies (dev + prod)
+# This will be preserved by the anonymous volume /app/node_modules in docker-compose
 RUN pnpm install --frozen-lockfile
-
-# Em desenvolvimento, o código-fonte é montado via volume (./frontend:/app)
 
 EXPOSE 3000
 
