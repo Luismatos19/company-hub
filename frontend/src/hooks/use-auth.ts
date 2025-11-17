@@ -14,38 +14,30 @@ export function useAuth() {
   } = useAuthStore();
 
   const login = async (email: string, password: string) => {
-    try {
-      const loggedUser = await authApi.login(email, password);
-      setUser(loggedUser);
+    const loggedUser = await authApi.login(email, password);
+    setUser(loggedUser);
 
-      if (loggedUser.activeCompanyId) {
-        const companies = await companiesApi.getAll();
-        setCompanies(companies);
+    if (loggedUser.activeCompanyId) {
+      const companies = await companiesApi.getAll();
+      setCompanies(companies);
 
-        const activeCompany = companies.find(
-          (c) => c.id === loggedUser.activeCompanyId
-        );
-        if (activeCompany) {
-          setActiveCompany(activeCompany);
-        }
+      const activeCompany = companies.find(
+        (c) => c.id === loggedUser.activeCompanyId
+      );
+      if (activeCompany) {
+        setActiveCompany(activeCompany);
       }
-
-      router.push("/dashboard");
-      return loggedUser;
-    } catch (error) {
-      throw error;
     }
+
+    router.push("/dashboard");
+    return loggedUser;
   };
 
   const signup = async (email: string, password: string, name?: string) => {
-    try {
-      const newUser = await authApi.signup(email, password, name);
-      setUser(newUser);
-      router.push("/dashboard");
-      return newUser;
-    } catch (error) {
-      throw error;
-    }
+    const newUser = await authApi.signup(email, password, name);
+    setUser(newUser);
+    router.push("/dashboard");
+    return newUser;
   };
 
   const logout = async () => {

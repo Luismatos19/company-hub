@@ -28,7 +28,7 @@ export function useAuthForm() {
     resolver: zodResolver(schema),
   });
 
-  const { setError, formState } = form;
+  const { setError, clearErrors, formState } = form;
 
   useEffect(() => {
     if (isAuthenticated && !formState.isSubmitting) {
@@ -37,6 +37,8 @@ export function useAuthForm() {
   }, [isAuthenticated, formState.isSubmitting, router, redirectTo]);
 
   const onSubmit = async (data: LoginFormData | SignupFormData) => {
+    clearErrors("root");
+
     try {
       if (isSignup) {
         const payload = data as SignupFormData;
@@ -46,15 +48,24 @@ export function useAuthForm() {
         await login(payload.email, payload.password);
       }
     } catch (error) {
+      let errorMessage = isSignup
+        ? "Erro ao criar conta."
+        : "Erro ao fazer login.";
+
       if (error instanceof ApiError) {
-        setError("root", { message: error.message });
+        errorMessage = error.message || errorMessage;
       } else if (error instanceof Error) {
-        setError("root", { message: error.message });
-      } else {
-        setError("root", {
-          message: isSignup ? "Erro ao criar conta." : "Erro ao fazer login.",
-        });
+        errorMessage = error.message || errorMessage;
       }
+
+      setError(
+        "root",
+        {
+          type: "manual",
+          message: errorMessage,
+        },
+        { shouldFocus: false }
+      );
     }
   };
 

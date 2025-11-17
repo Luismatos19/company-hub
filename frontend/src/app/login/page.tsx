@@ -18,10 +18,8 @@ import { Zap } from "lucide-react";
 function LoginContent() {
   const { isSignup, form, formState, onSubmit, switchMode } = useAuthForm();
 
-  const { register, handleSubmit, errors, isSubmitting } = {
-    ...form,
-    ...formState,
-  };
+  const { register, handleSubmit } = form;
+  const { errors, isSubmitting } = formState;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -61,7 +59,7 @@ function LoginContent() {
               type="email"
               placeholder="seu@email.com"
               {...register("email")}
-              error={errors.email?.message}
+              error={errors?.email?.message}
             />
 
             <FormField
@@ -69,10 +67,10 @@ function LoginContent() {
               type="password"
               placeholder="••••••••"
               {...register("password")}
-              error={errors.password?.message}
+              error={errors?.password?.message}
             />
 
-            {errors.root?.message && (
+            {errors?.root?.message && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
                 {errors.root.message}
               </div>

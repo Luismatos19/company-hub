@@ -1,8 +1,5 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import {
   UnauthorizedException,
   ForbiddenException,
@@ -10,6 +7,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { MembershipRole } from '../common/enums/membership-role.enum';
+
+export const IS_PUBLIC_KEY = 'isPublic';
 
 export interface AuthUserContext {
   id: string;
@@ -23,9 +22,19 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest<any>();
 
     const token = this.extractTokenFromRequest(request);
@@ -99,7 +108,6 @@ export class JwtAuthGuard implements CanActivate {
       }
     }
 
-    // Fallback para Authorization: Bearer
     const authHeader: string | undefined = request.headers?.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       return authHeader.substring('Bearer '.length);

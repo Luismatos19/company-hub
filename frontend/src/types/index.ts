@@ -50,18 +50,17 @@ export interface Invite {
   email: string;
   companyId: string;
   token: string;
-  status: InviteStatus;
+  status?: InviteStatus;
+  expiresAt: string;
   company?: Company;
   createdAt: string;
   updatedAt: string;
 }
 
-// UI Types
 export type RoleBadgeVariant = "default" | "secondary" | "destructive";
 
 export type SidebarMode = "dashboard" | "company-details";
 
-// Component Props Types
 export interface SidebarProps {
   mode?: SidebarMode;
   company?: Company | null;
@@ -69,4 +68,3 @@ export interface SidebarProps {
   onEditCompany?: () => void;
   onDeleteCompany?: () => void;
 }
-

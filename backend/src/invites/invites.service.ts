@@ -57,6 +57,9 @@ export class InvitesService {
     });
 
     this.logger.log(`Convite criado: ${invite.id} para ${email}`);
+
+    await this.simulateEmailSend(invite);
+
     return invite;
   }
 
@@ -135,6 +138,14 @@ export class InvitesService {
   async acceptInvite(userId: string, token: string) {
     const invite = await this.prisma.invite.findUnique({
       where: { token },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
     if (!invite) {
       throw new UnauthorizedException('Convite inválido');
@@ -170,6 +181,61 @@ export class InvitesService {
       });
     }
 
-    return { message: 'Convite aceito com sucesso' };
+    this.logger.log(
+      `Convite aceito: usuário ${userId} aceitou convite para empresa ${invite.companyId}`,
+    );
+
+    return {
+      message: 'Convite aceito com sucesso',
+      company: invite.company,
+    };
+  }
+
+  private async simulateEmailSend(invite: {
+    id: string;
+    email: string;
+    token: string;
+    expiresAt: Date;
+    company: { id: string; name: string };
+  }): Promise<void> {
+    const delay = Math.floor(Math.random() * 150) + 50;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const acceptUrl = `${frontendUrl}/accept-invite?token=${invite.token}`;
+    const expiresAtFormatted = new Date(invite.expiresAt).toLocaleString(
+      'pt-BR',
+    );
+
+    this.logger.log('═══════════════════════════════════════════════════════');
+    this.logger.log('📧 EMAIL SIMULADO ENVIADO');
+    this.logger.log('═══════════════════════════════════════════════════════');
+    this.logger.log(`Para: ${invite.email}`);
+    this.logger.log(
+      `Assunto: Convite para se juntar à empresa ${invite.company.name}`,
+    );
+    this.logger.log('');
+    this.logger.log('Corpo do email:');
+    this.logger.log('');
+    this.logger.log(`Olá!`);
+    this.logger.log('');
+    this.logger.log(
+      `Você foi convidado(a) para se juntar à empresa ${invite.company.name} no Company Hub.`,
+    );
+    this.logger.log('');
+    this.logger.log(`Para aceitar o convite, clique no link abaixo:`);
+    this.logger.log(`${acceptUrl}`);
+    this.logger.log('');
+    this.logger.log(`Este convite expira em: ${expiresAtFormatted}`);
+    this.logger.log('');
+    this.logger.log(`Token do convite: ${invite.token}`);
+    this.logger.log('');
+    this.logger.log(
+      'Se você não esperava este convite, pode ignorar este email.',
+    );
+    this.logger.log('');
+    this.logger.log('Atenciosamente,');
+    this.logger.log('Equipe Company Hub');
+    this.logger.log('═══════════════════════════════════════════════════════');
   }
 }

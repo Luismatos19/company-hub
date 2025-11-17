@@ -9,6 +9,7 @@ import {
   HttpStatus,
   UseInterceptors,
   UseGuards,
+  SetMetadata,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InvitesService } from './invites.service';
@@ -20,6 +21,9 @@ import { RolesGuard } from '../auth/roles.guard';
 import { MembershipRole } from '../common/enums/membership-role.enum';
 import { DocInvites } from './invites.doc';
 import { CurrentUser } from '../auth/current-user.decorator';
+
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 @ApiTags('Convites')
 @Controller('invites')
@@ -52,6 +56,7 @@ export class InvitesController {
   }
 
   @Get('token/:token')
+  @Public()
   @DocInvites.GetByToken()
   findByToken(@Param('token') token: string) {
     return this.invitesService.findByToken(token);

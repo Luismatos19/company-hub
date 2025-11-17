@@ -35,11 +35,17 @@ api.interceptors.response.use(
     const status = error.response?.status || null;
     const responseData = error.response?.data as any;
 
-    const message =
-      responseData?.message ||
-      (typeof responseData === "string" ? responseData : null) ||
-      error.message ||
-      "Erro desconhecido";
+    let message = "Erro desconhecido";
+
+    if (responseData?.message) {
+      message = responseData.message;
+    } else if (typeof responseData === "string") {
+      message = responseData;
+    } else if (responseData?.error) {
+      message = responseData.error;
+    } else if (error.message) {
+      message = error.message;
+    }
 
     const data = error.response?.data || null;
 
@@ -47,7 +53,9 @@ api.interceptors.response.use(
       status === 401 &&
       typeof window !== "undefined" &&
       !window.location.pathname.includes("/login") &&
-      !window.location.pathname.includes("/accept-invite")
+      !window.location.pathname.includes("/accept-invite") &&
+      !error.config?.url?.includes("/auth/login") &&
+      !error.config?.url?.includes("/auth/signup")
     ) {
       window.location.href = "/login";
     }
@@ -110,6 +118,9 @@ export const invitesApi = {
     handleRequest<Invite>(
       api.post("/invites", { companyId, email, expiresAt })
     ),
+
+  getByToken: (token: string) =>
+    handleRequest<Invite>(api.get(`/invites/token/${token}`)),
 
   accept: (token: string) =>
     handleRequest<{
