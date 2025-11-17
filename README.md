@@ -345,6 +345,76 @@ O Swagger documenta todos os módulos da API:
 - 👑 Alguns endpoints requerem permissões específicas (Owner/Admin)
 - 📝 Todos os DTOs e schemas são documentados automaticamente
 
+## 🚀 CI/CD
+
+O projeto possui integração contínua configurada através do GitHub Actions. O pipeline de CI executa automaticamente em cada push e pull request para as branches `main` e `master`.
+
+### Pipeline de CI
+
+O pipeline consiste em dois jobs paralelos:
+
+#### Backend Job
+
+1. **Setup do Ambiente**
+
+   - Configura Node.js 20
+   - Configura pnpm 9
+   - Instala PostgreSQL 16 como serviço
+
+2. **Preparação**
+
+   - Instala dependências
+   - Gera Prisma Client
+   - Aplica migrações do banco de dados
+
+3. **Validação**
+
+   - Executa linter (`pnpm lint`)
+   - Executa testes unitários (`pnpm test`)
+   - Build do projeto (`pnpm build`)
+
+4. **Build Docker**
+   - Constrói imagem Docker do backend
+
+#### Frontend Job
+
+1. **Setup do Ambiente**
+
+   - Configura Node.js 20
+   - Configura pnpm 9
+
+2. **Preparação**
+
+   - Instala dependências
+
+3. **Validação**
+
+   - Executa linter (`pnpm lint`)
+   - Executa testes (`pnpm test`)
+   - Build do projeto (`pnpm build`)
+
+4. **Build Docker**
+   - Constrói imagem Docker do frontend
+
+### Arquivo de Configuração
+
+A configuração da CI está localizada em `.github/ci.yml` e é executada automaticamente pelo GitHub Actions.
+
+### Verificando o Status
+
+O status da CI pode ser verificado:
+
+- No badge de status no README (se configurado)
+- Na aba "Actions" do repositório GitHub
+- Nos detalhes de commits e pull requests
+
+### Pré-requisitos para CI
+
+- Node.js 20
+- pnpm 9
+- PostgreSQL 16 (para testes do backend)
+- Docker (para build das imagens)
+
 ## 🤝 Contribuindo
 
 1. Faça um fork do projeto
